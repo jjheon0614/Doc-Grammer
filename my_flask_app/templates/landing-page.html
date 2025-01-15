@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Docx-Perfector</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/landing-page-styles.css') }}">
+</head>
+<body>
+    
+    <div class="top-bar">
+
+        <div class="page-title">
+            <img src="{{ url_for('static', filename='photos/bot-profile.gif') }}" alt="">
+            
+            <h2 class="text_shadows">Docx-Perfector</h2>
+        </div>
+
+        <!-- <div class="user-register">
+            <button class="signInBtN"><h4>Sign In</h4></button>
+            <button class="signUpBtn"><h4>Sign Up</h4></button>
+        </div> -->
+    </div>
+
+    <hr class="solid">
+
+    <div class="page-intro">
+
+        <div class="intro-message">
+            <h2>Hello World!</h2>
+            <h3>I'm Docx-Perfector, an AI ChatBot. </h3>
+            <h4 id="bot-functions">Here are what I can do:</h4>
+            <p class="intro-1">- Formatting your docx document.</p>
+            <p class="intro-2">- Finding typos of the text.</p>
+            <p class="intro-3">- Correcting grammar of the text.</p>
+            <p class="intro-4">- And more.</p>
+            <h4 id="best-feature">Prompt me:</h4>
+            <div class="prompts"></div>
+            
+        </div>
+
+
+        <div class="signup-message">
+            <div class="chatbot-img">
+                <img src="{{ url_for('static', filename='photos/bot-profile.gif') }}" alt="">
+            </div>
+
+            <div class="signup-now">
+
+                <h4 id="interesting">Finding me interesting?</h4>
+
+                <p>Sign up now to experience my features!</p>
+
+                <!-- <a href="{{ url_for('login') }}">Sign in with Google</a> -->
+                
+                <button class="signup-now" onclick="location.href='{{ url_for('login') }}'"><h4>Sign In By Gmail</h4></button>
+
+            </div>
+        </div>
+
+    </div>
+
+    <footer>
+        <h5>© 2023 Docx-Perfector. All rights reserved.</h5>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+    <script>
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const paragraphs = document.querySelectorAll('.intro-message p');
+            
+            paragraphs.forEach(function (paragraph, index) {
+                setTimeout(function () {
+                    paragraph.classList.add('visible');
+                }, index * 1000); // Adjust the delay as needed
+                });
+        });
+
+       var words = ['Correct my english grammar.', 'Fix my document typo.', 'Write me some Python code.', ' Consectetur adipiscing elit.', 'Sed do eiusmod tempor incididunt.'],
+            part,
+            i = 0,
+            offset = 0,
+            len = words.length,
+            forwards = true,
+            skip_count = 0,
+            skip_delay = 15,
+            speed = 70;
+        var wordflick = function () {
+        setInterval(function () {
+            if (forwards) {
+            if (offset >= words[i].length) {
+                ++skip_count;
+                if (skip_count == skip_delay) {
+                forwards = false;
+                skip_count = 0;
+                }
+            }
+            }
+            else {
+            if (offset == 0) {
+                forwards = true;
+                i++;
+                offset = 0;
+                if (i >= len) {
+                i = 0;
+                }
+            }
+            }
+            part = words[i].substr(0, offset);
+            if (skip_count == 0) {
+            if (forwards) {
+                offset++;
+            }
+            else {
+                offset--;
+            }
+            }
+            $('.prompts').text(part);
+        },speed);
+        };
+
+        $(document).ready(function () {
+        wordflick();
+        });
+
+    </script>
+
+</body>
+</html>

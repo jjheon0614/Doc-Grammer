@@ -1,0 +1,256 @@
+<!-- Filename: index.html - Directory: my_flask_app/templates -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Uploads</title>
+	<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://js.stripe.com/v3/"></script>
+
+</head>
+
+<body>
+    <div class="container">
+        <!--THE SIDEBAR-->
+        <div class="column1">
+            {% if current_user.is_authenticated %}
+            <div class="user-profile">
+                <img src="{{ current_user.picture }}" alt="Profile Picture" class="profile-picture">
+                <h3>{{ current_user.given_name }}</h3>
+                <p>{{ current_user.email }}</p>
+                <p>Account type: <span class="account-type" data-type="{{ current_user.account_type }}">{{ current_user.account_type }}</span></p>
+                {% if current_user.account_type != "Free" %}
+                    <p>Expired Date:</p>
+                    <p>{{ current_user.expired_date }}</p>
+                {% endif %}
+
+            </div>
+            
+            <hr class="solid">
+
+            <div class="functions">
+                {% if current_user.subscription_purchased %}
+                <form method="POST" action="/create-customer-portal-session">
+                    <button type="submit"><h4>Manage billing</h4></button>
+                </form>
+                {% endif %}
+
+                {% if not current_user.subscription_purchased %}
+                <button class="billingBtn" type="button"><h4>Billing Plans</h4></button>
+                {% endif %}
+                <!-- <button class="logoutBtn" type="button"><h4>Logout</h4></button> -->
+                <button class="logoutBtn" type="button" onclick="confirmLogout()"><h4>Logout</h4></button>
+            </div>
+            {% else %}
+                <a href="{{ url_for('login') }}">Sign in with Google</a>
+            {% endif %}
+        </div>
+
+        <!--THE CHATBOT-->
+        <div class="column2">
+            <h2>Docx-Perfector</h2>
+
+            <div class="bot">
+                <div class="bot-img">
+                    <img src="{{ url_for('static', filename='photos/bot-profile.gif') }}" alt="">
+                </div>
+                <div class="bot-intro">
+                    <p>Hi! My name is Docx-Perfector. And I am your assitant today!</p>
+                    <p>How can I help you?</p> 
+                </div>
+            </div>
+
+            <div class="search-bar">
+                <form action="{{ url_for('file_blueprint.upload_file') }}" method="post" enctype="multipart/form-data">
+                    <input type="file" name="file" id="inputFile">
+                    <button type="submit" class="submitButton" id="submitButton">
+                        <span class="textWrapper">Submit</span>
+                        <div class="spinner"></div>
+                    </button>
+                </form>
+            </div>
+
+            <div class="bot-response" style="display: none;">
+                <div class="bot-img">
+                    <img src="photos/bot-profile.gif" alt="">
+                </div>
+                <div class="bot-intro">
+                    <p id="processing-text">Processing the file</p>
+                </div>
+            </div>
+
+            <!-- Display flash messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash-message {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <h2>Uploaded Files</h2>
+
+            <!-- Search Bar -->
+            <form action="{{ url_for('index') }}" method="get" class="search-container">
+                <div class="search-box">
+                    <img src="{{ url_for('static', filename='photos/search-icon.png') }}" alt="Search" class="search-icon">
+                    <input type="text" name="search" class="search-input" placeholder="Find files by name" value="{{ request.args.get('search', '') }}">
+                
+                    <i class="fas fa-search search-icon"></i>
+                    <button type="submit">Search</button>
+                </div>
+                
+                <!-- <input type="text" name="search" placeholder=" Find files by name" value="{{ request.args.get('search', '') }}"> -->
+                
+                <!-- Clear Search Button -->
+                {% if search_term %}
+                    <a href="{{ url_for('index') }}" class="clear-search-button">Clear Search</a>
+                {% endif %}
+            </form>
+
+            <!-- Files List -->
+            <div class="files-list">
+                <div class="section-header">
+                    <div class="section-title">File Name
+                        <button onclick="window.location.href = '{{ url_for('index', sort='name', descending=not descending if sort == 'name' else True, search=search_term) }}';">
+                            {% if sort == 'name' %}
+                                {% if descending %}
+                                    ▼ <!-- Currently sorted by 'name' in descending order -->
+                                {% else %}
+                                    ▲ <!-- Currently sorted by 'name' in ascending order -->
+                                {% endif %}
+                            {% else %}
+                                ▲ <!-- Default state when not sorted by 'name' -->
+                            {% endif %}
+                        </button>
+                    </div>
+                    <div class="section-title">Upload Time
+                        <button onclick="window.location.href = '{{ url_for('index', sort='time', descending=not descending if sort == 'time' else True, search=search_term) }}';">
+                            {% if sort == 'time' %}
+                                {% if descending %}
+                                    ▼ <!-- Currently sorted by 'time' in descending order -->
+                                {% else %}
+                                    ▲ <!-- Currently sorted by 'time' in ascending order -->
+                                {% endif %}
+                            {% else %}
+                                ▲ <!-- Default state when not sorted by 'time' -->
+                            {% endif %}
+                        </button>
+                    </div>
+                    <div class="section-title">File Size
+                        <button onclick="window.location.href = '{{ url_for('index', sort='size', descending=not descending if sort == 'size' else True, search=search_term) }}';">
+                            {% if sort == 'size' %}
+                                {% if descending %}
+                                    ▼
+                                {% else %}
+                                    ▲
+                                {% endif %}
+                            {% else %}
+                                ▲ <!-- Default state when not sorted by 'time' -->
+                            {% endif %}
+                        </button>
+                    </div>
+                    <div class="section-title">Actions</div>
+                </div>
+
+                {% for file in files %}
+                <div class="file-entry">
+                    <div class="file-name">
+                        
+                        <div class="file-actions">
+                            <input type="checkbox" name="file-checkbox" value="{{ file.id }}">
+                        </div>
+
+                        {{ file.file_name[11:30] }}
+                        
+                    </div>
+                    <div class="file-upload-time">{{ file.upload_time.strftime('%Y-%m-%d %H:%M:%S') }}</div>
+                    <div class="file-size">
+                        {% if file.file_size > 1 %}
+                        {{ file.file_size }} MB
+                        {% else %}
+                        {{ (file.file_size * 1024) | round(2) }} KB
+                        {% endif %}
+                    </div>
+                    <div class="file-actions">
+                    
+                         <a href="{{ url_for('file_blueprint.get_corrections', file_id=file.id) }}">Show Corrections</a>
+                    </div>
+
+                    
+                </div>
+                {% endfor %}
+            </div>
+            
+
+            <div class="action-buttons">
+    
+                <!-- Add this form inside the <div class="action-buttons"> -->
+                <form action="{{ url_for('file_blueprint.download_selected_files') }}" method="post" id="download-form">
+                    <input type="hidden" name="file_ids_download" id="file_ids_download" value="">
+                    <!-- Other form elements -->
+                </form>
+            
+                <form action="{{ url_for('file_blueprint.delete_selected_files') }}" method="post" id="delete-form">
+                    <input type="hidden" name="file_ids_delete" id="file_ids_delete" value="">
+                    <!-- Other form elements -->
+                </form>
+            
+                <button id="deleteButton" onclick="performAction('delete')">Delete Selected</button>
+                <button id="downloadButton" onclick="performAction('download')">Download Selected</button>
+            </div>
+
+
+            <!-- Pagination Controls -->
+            <div class="pagination">
+                {% for i in range(1, total_pages + 1) %}
+                    <a href="{{ url_for('index', page=i) }}" class="{{ 'active' if i == current_page else '' }}">{{ i }}</a>
+                {% endfor %}
+            </div>
+            
+
+            <h2>Grammar Checking</h2>
+            {% if corrections %}
+                <div id="corrections">
+                    {% for correction in corrections %}
+                        <div class="correction-detail">
+                            <p><strong>Original Text:</strong> {{ correction.original_sentence }}</p>
+                            <p><strong>Corrected Text:</strong> {{ correction.corrected_sentence }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+        </div>
+        
+    </div>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    
+    <script>
+        function performAction(action) {
+            var selectedFiles = [];
+            var checkboxes = document.getElementsByName('file-checkbox');
+    
+            for (var i = 0; i < checkboxes.length; i++) {
+                if (checkboxes[i].checked) {
+                    selectedFiles.push(checkboxes[i].value);
+                }
+            }
+    
+            if (selectedFiles.length > 0) {
+                console.log("Selected file IDs: ", selectedFiles);
+                document.getElementById('file_ids_delete').value = selectedFiles.join(',');
+                document.getElementById('file_ids_download').value = selectedFiles.join(',');
+                if (action === 'download') {
+                    document.getElementById('download-form').submit();
+                } else if (action == 'delete'){
+                    document.getElementById('delete-form').submit();
+                }
+            } else {
+                alert('Please select files to perform the action.');
+            }
+        }
+    </script>
+</body>
+</html>
