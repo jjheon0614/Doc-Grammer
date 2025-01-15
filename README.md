@@ -11,6 +11,28 @@ DocGrammar is a Flask web application designed to allow users to upload .docx fi
 - Persistent Data Storage: Using PostgreSQL for storing file and user data.
 - Modular Flask Structure: Organized code with Blueprints and modular design.
 
+## Screenshots
+
+### Landing Page
+<div align="center">
+    <img src="images/landing_page.png" alt="Landing Page" width="700px">
+</div>
+
+### Chatting Page
+<div align="center">
+    <img src="images/chat_page.png" alt="Landing Page" width="700px">
+</div>
+
+### File Correction
+<div align="center">
+    <img src="images/file_correction.png" alt="Landing Page" width="700px">
+</div>
+
+### Billing Page
+<div align="center">
+    <img src="images/billing_page.png" alt="Landing Page" width="700px">
+</div>
+
 ## Installation
 
 To set up the project environment and run the application locally, follow these steps:
