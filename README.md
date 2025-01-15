@@ -105,14 +105,6 @@ The application will be accessible at `http://localhost:5000`.
 3. View the grammar corrections displayed on the page.
 4. Download the corrected file if necessary.
 
-## Contributing
-
-If you'd like to contribute to the project, please fork the repository and create a pull request with your changes.
-
-## License
-
-This project is open source and available under the [MIT License](LICENSE.md).
-
 ## Acknowledgements
 
 - Flask for the web framework.
